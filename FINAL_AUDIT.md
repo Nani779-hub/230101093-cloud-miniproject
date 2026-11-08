@@ -53,3 +53,33 @@ This repository has been comprehensively audited and brought into full complianc
 | 6-Point Review | `report/report.pdf` | All 6 concerns documented with metrics | PASS |
 | Project Report | `report/report.pdf` | 3 pages (PDF), ReportLab compiled | PASS |
 | Handwritten Reflection | `reflection/230101093.pdf` | Action Required: Student to handwrite & scan | PENDING |
+
+---
+
+## 3. Task 1 Teacher Shards Forensic Analysis
+
+A complete census of all 3,000 raw teacher responses in `data/teacher_shards/shard-0.jsonl` and `shard-1.jsonl` was conducted using `json.JSONDecoder().raw_decode()`:
+
+| Category | `shard-0.jsonl` | `shard-1.jsonl` | Total Across Shards | Percentage of Total |
+| :--- | :---: | :---: | :---: | :---: |
+| **Total Input Records** | **1,500** | **1,500** | **3,000** | **100.0%** |
+| **Valid JSON (Strict 4-Key Schema)** | **970** | **998** | **1,968** | **65.6%** |
+| – *Hallucinated slots rejected (rule d)* | *21* | *25* | *46* | *1.5%* |
+| – *Valid deduplicated kept records* | *949* | *973* | *1,888* (after 34 dup removed) | *62.9%* |
+| **Empty Responses (`""`)** | **17** | **11** | **28** | **0.9%** |
+| **Non-Empty Invalid JSON (Rule a)** | **513** | **491** | **1,004** | **33.5%** |
+| – *Complete valid JSON + commentary (contains `"note"`)* | *483* | *459* | *942* | *31.4%* |
+| – *Complete valid JSON + commentary (other headers)* | *30* | *32* | *62* | *2.1%* |
+| – *Truncated / incomplete JSON syntax* | *0* | *0* | *0* | *0.0%* |
+| – *Other malformed non-JSON responses* | *0* | *0* | *0* | *0.0%* |
+| **Total Rule (a) Rejections (Empty + Invalid)** | **530** | **502** | **1,032** | **34.4%** |
+
+### Key Forensic Findings:
+1. **Zero Truncated Outputs:** All 1,004 non-empty invalid responses successfully parsed into a valid 4-key JSON object via `raw_decode()`, followed by natural language commentary appended by Phi-3.5.
+2. **Mutually Exclusive Reconciliation:**
+   - 942 responses contain commentary with the keyword `"note"`.
+   - 62 responses contain commentary without the word `"note"` (e.g., `Explanation:`, `In this command:`).
+   - $942 + 62 = 1,004$ (100.0% of non-empty invalid records).
+   - Plus 28 empty records = **1,032** total Rule (a) rejections.
+3. **Data Integrity:** Final dataset SHA-256 is verified as `a6ba785ca8cc3ab5dfe853cd01371178ce265f383279cf176ba99463656ea6ad` on both local disk and SeaweedFS S3.
+

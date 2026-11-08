@@ -12,6 +12,10 @@ spec:
         shard: "0"
     spec:
       restartPolicy: Never
+      hostAliases:
+        - ip: "192.168.65.254"
+          hostnames:
+            - "host.k3d.internal"
       containers:
         - name: worker
           image: command-parser-worker:latest
@@ -26,9 +30,15 @@ spec:
             - name: S3_ENDPOINT
               value: "http://seaweedfs.data.svc.cluster.local:8333"
             - name: AWS_ACCESS_KEY_ID
-              value: "admin"
+              valueFrom:
+                secretKeyRef:
+                  name: s3-credentials
+                  key: AWS_ACCESS_KEY_ID
             - name: AWS_SECRET_ACCESS_KEY
-              value: "admin"
+              valueFrom:
+                secretKeyRef:
+                  name: s3-credentials
+                  key: AWS_SECRET_ACCESS_KEY
             - name: BUCKET
               value: "datasets"
 

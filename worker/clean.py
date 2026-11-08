@@ -203,9 +203,9 @@ def main():
     # Also save locally for training
     local_dir = os.path.join(os.path.dirname(__file__), "..", "data")
     os.makedirs(local_dir, exist_ok=True)
-    with open(os.path.join(local_dir, "train.jsonl"), "w", encoding="utf-8") as f:
+    with open(os.path.join(local_dir, "train.jsonl"), "w", encoding="utf-8", newline="\n") as f:
         f.write(output_data)
-    with open(os.path.join(local_dir, "train.sha256"), "w", encoding="utf-8") as f:
+    with open(os.path.join(local_dir, "train.sha256"), "w", encoding="utf-8", newline="\n") as f:
         f.write(f"{sha256}  train.jsonl\n")
 
     print(f"\n{'=' * 50}")

@@ -72,3 +72,4 @@ Reflecting on the system design, several enhancements would be prioritized in an
 
 ##### 3.3 Concluding Reflections
 This mini-project provided an invaluable bridge between machine learning theory and distributed cloud systems engineering. Constructing a complete pipeline encompassing data ingestion, knowledge distillation, S3 object storage, Kubernetes scaling, stateless NACLs, and automated CI/CD gating offered a comprehensive masterclass in building reliable, cloud-native AI systems under strict resource constraints.
+

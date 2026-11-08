@@ -30,6 +30,7 @@ models/
 *.zip
 *.tar
 *.tar.gz
+*.bak
 *.tmp
 *.temp
 .pytest_cache/

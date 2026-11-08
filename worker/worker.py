@@ -124,6 +124,7 @@ def query_teacher(text):
     payload = json.dumps({
         "model": MODEL,
         "prompt": f"{SYSTEM_PROMPT}\nCommand: {text}",
+        "format": "json",
         "stream": False,
         "options": {
             "temperature": TEMPERATURE,

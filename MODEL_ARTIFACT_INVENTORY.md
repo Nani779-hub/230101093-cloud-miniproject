@@ -147,3 +147,4 @@ To maintain archive sizes below 5 MB and comply with security rules:
 3. **Python Bytecode (`__pycache__/`, `*.pyc`):** Excluded as generated runtime cache.
 4. **Local Cluster State / Temp Files:** Temporary test artifacts and sockets excluded.
 5. **Credentials and Secrets:** Real credentials excluded. Dummy local dev secrets are tracked strictly in `k8s/secret.yaml`.
+
