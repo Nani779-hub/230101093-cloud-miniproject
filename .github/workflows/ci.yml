@@ -59,7 +59,7 @@ jobs:
         env:
           PYTHONPATH: .
         run: |
-          pytest tests/test_cleaning_rules.py tests/test_service_schema.py tests/test_nacl_rules.py -v
+          pytest tests/test_cleaning_rules.py tests/test_service_schema.py tests/test_nacl_rules.py tests/test_pipeline.py -v
 
   # ----------------------------------------------------------------------------
   # Stage 3: Model Evaluation & Quality Gate
@@ -77,30 +77,55 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install ML Inference Dependencies
+        run: |
+          pip install --index-url https://download.pytorch.org/whl/cpu torch
+          pip install transformers accelerate
+
       - name: Download Model from GitHub Release
         id: download_release
         run: |
           mkdir -p models/v1
-          echo "Attempting download of student model release assets..."
-          if command -v gh &> /dev/null && gh release view v1.0.0 --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
-            gh release download v1.0.0 --dir models/v1 --repo "$GITHUB_REPOSITORY"
-            echo "Downloaded model release asset."
+          if [ "${{ inputs.test_bad_model }}" = "true" ] || [ "${{ github.ref_name }}" = "failing-gate-demo" ]; then
+            echo "Demonstrating bad model: skipping release download."
           else
-            echo "Release not found or running locally; using checked results."
+            echo "Downloading required model release assets from GitHub Release v1.0.0..."
+            if ! command -v gh &> /dev/null; then
+              echo "ERROR: GitHub CLI (gh) is not installed on runner!"
+              exit 1
+            fi
+            if ! gh release download v1.0.0 --dir models/v1 --repo "$GITHUB_REPOSITORY"; then
+              echo "ERROR: Failed to download GitHub Release v1.0.0 assets!"
+              exit 1
+            fi
+            echo "Successfully downloaded release assets."
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Evaluate Predictions against Validation Set
+      - name: Run Model Inference & Quality Gate
+        env:
+          PYTHONPATH: .
         run: |
-          # If deliberately testing bad model, use untrained predictions (0% validity)
           if [ "${{ inputs.test_bad_model }}" = "true" ] || [ "${{ github.ref_name }}" = "failing-gate-demo" ]; then
-            echo "--- DEMONSTRATING DELIBERATELY BAD MODEL EVALUATION ---"
+            echo "============================================================"
+            echo "DEMONSTRATING DELIBERATELY BAD MODEL QUALITY GATE FAILURE"
+            echo "Using untrained Pythia-70M predictions (0.0% validity)"
+            echo "============================================================"
             PRED_FILE="results/untrained_predictions.jsonl"
           else
+            echo "============================================================"
+            echo "RUNNING INFERENCE WITH DOWNLOADED v1.0.0 MODEL ARTIFACT"
+            echo "============================================================"
+            python evaluation/generate_predictions.py \
+              --model models/v1 \
+              --input cloud_assignment/data/validation.jsonl \
+              --output results/student_v1_predictions.jsonl \
+              --verify-checksum models/v1/model.sha256
             PRED_FILE="results/student_v1_predictions.jsonl"
           fi
-          echo "Scoring predictions from $PRED_FILE against validation set..."
+
+          echo "Evaluating predictions against validation dataset with quality gate (--min-validity 95)..."
           python cloud_assignment/tools/score.py "$PRED_FILE" cloud_assignment/data/validation.jsonl --min-validity 95 --out results/ci_score_report.json
 
   # ----------------------------------------------------------------------------
@@ -110,6 +135,7 @@ jobs:
     name: Secret Scanning (Gitleaks)
     runs-on: ubuntu-latest
     needs: [model-evaluation]
+    if: always() && !cancelled()
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

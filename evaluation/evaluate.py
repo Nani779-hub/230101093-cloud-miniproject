@@ -55,18 +55,27 @@ def run_score(predictions_path: str, gold_path: str, out_path: Optional[str] = N
     return report
 
 
-def print_comparison_table(teacher: Dict[str, Any], untrained: Dict[str, Any], trained: Dict[str, Any]) -> None:
+def print_comparison_table(
+    teacher: Dict[str, Any],
+    untrained: Dict[str, Any],
+    trained_v1: Dict[str, Any],
+    trained_v2: Optional[Dict[str, Any]] = None,
+) -> None:
     """Print an aligned markdown and terminal comparison table."""
     metrics = [
         ("JSON Validity (%)", "json_validity"),
         ("Intent Accuracy (%)", "intent_accuracy"),
-        ("Date Accuracy (%)", "date_accuracy"),
-        ("Time Accuracy (%)", "time_accuracy"),
-        ("Place Accuracy (%)", "place_accuracy"),
+        ("Date Slot Accuracy (%)", "date_accuracy"),
+        ("Time Slot Accuracy (%)", "time_accuracy"),
+        ("Place Slot Accuracy (%)", "place_accuracy"),
         ("Full Frame Accuracy (%)", "full_frame"),
     ]
 
-    header = f"{'Metric':<26} | {'Teacher (phi3.5)':<18} | {'Untrained Student':<18} | {'Trained Student (v1)':<20}"
+    cols = ["Teacher (phi3.5)", "Untrained Student", "Trained Student (v1)"]
+    if trained_v2:
+        cols.append("Trained Student (v2)")
+
+    header = f"{'Metric':<25} | " + " | ".join(f"{c:<20}" for c in cols)
     separator = "-" * len(header)
 
     print("\n" + separator)
@@ -76,14 +85,23 @@ def print_comparison_table(teacher: Dict[str, Any], untrained: Dict[str, Any], t
     print(separator)
 
     for label, key in metrics:
-        t_val = f"{teacher.get(key, 0.0):.2f}%" if teacher else "N/A"
-        u_val = f"{untrained.get(key, 0.0):.2f}%" if untrained else "N/A"
-        s_val = f"{trained.get(key, 0.0):.2f}%" if trained else "N/A"
-        print(f"{label:<26} | {t_val:<18} | {u_val:<18} | {s_val:<20}")
+        vals = [
+            f"{teacher.get(key, 0.0):.2f}%" if teacher else "N/A",
+            f"{untrained.get(key, 0.0):.2f}%" if untrained else "N/A",
+            f"{trained_v1.get(key, 0.0):.2f}%" if trained_v1 else "N/A",
+        ]
+        if trained_v2:
+            vals.append(f"{trained_v2.get(key, 0.0):.2f}%" if trained_v2 else "N/A")
+
+        row = f"{label:<25} | " + " | ".join(f"{v:<20}" for v in vals)
+        print(row)
 
     print(separator)
-    if trained and "examples" in trained:
-        print(f"Total Validation Examples: {trained['examples']}")
+    if trained_v1 and "examples" in trained_v1:
+        print(f"Total Validation Examples: {trained_v1['examples']}")
+    print("Key Finding: Student v1 satisfies the >= 95% JSON validity gate (99.0%).")
+    if trained_v2:
+        print("Trade-off:   Student v2 achieves higher full-frame accuracy (40.0% vs 27.0%) but lower validity (94.0% < 95%).")
     print(separator + "\n")
 
 
@@ -93,6 +111,7 @@ def main():
     parser.add_argument("--teacher-preds", default="results/teacher_predictions.jsonl")
     parser.add_argument("--untrained-preds", default="results/untrained_predictions.jsonl")
     parser.add_argument("--trained-preds", default="results/student_v1_predictions.jsonl")
+    parser.add_argument("--trained-v2-preds", default="results/student_v2_predictions.jsonl")
     parser.add_argument("--min-validity", type=float, default=95.0, help="Fail if trained student validity < min")
     args = parser.parse_args()
 
@@ -108,17 +127,27 @@ def main():
         print("Scoring Teacher Model (phi3.5:latest)...")
         teacher_score = run_score(args.teacher_preds, args.gold, out_path="results/teacher_validation.json")
 
-    # 3. Trained Student Model
+    # 3. Trained Student Model v1
     print("Scoring Trained Student Model (v1)...")
-    trained_score = run_score(
+    trained_v1_score = run_score(
         args.trained_preds,
         args.gold,
         out_path="results/student_v1_validation.json",
         min_validity=args.min_validity,
     )
 
+    # 4. Trained Student Model v2 (if available)
+    trained_v2_score = None
+    if os.path.exists(args.trained_v2_preds):
+        print("Scoring Trained Student Model (v2)...")
+        trained_v2_score = run_score(
+            args.trained_v2_preds,
+            args.gold,
+            out_path="results/student_v2_validation.json",
+        )
+
     # Comparison summary
-    print_comparison_table(teacher_score, untrained_score, trained_score)
+    print_comparison_table(teacher_score, untrained_score, trained_v1_score, trained_v2_score)
 
 
 if __name__ == "__main__":

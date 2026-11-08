@@ -1,0 +1,113 @@
+================================================================================
+Task 4 Rolling Update Failure Forensic Audit & Continuous Retest Evidence
+Course: CS3081 Cloud Computing
+Student Roll Number: 230101093
+Test Timestamp: 2026-11-08 22:46:30
+================================================================================
+
+1. Forensic Investigation of the 5 Failures from the Previous Test:
+--------------------------------------------------------------------------------
+Previous Run:
+- Total Requests: 126
+- Failures: 5 HTTP 500 responses (3.97% failure rate vs. 0.5% max ceiling)
+- Dropped Connections / HTTP 502: 0 (0.0%)
+
+Root Cause Analysis:
+- Infrastructure: Flawless. Zero dropped connections, zero network reset errors, zero 502/503/504 Bad Gateway errors from Traefik Ingress.
+- Cause: Model generation syntax anomaly. During continuous load generation on specific validation examples (e.g. V042 "what time is it in beijing", V049 "what is the address for the event scheduled on the first of january alexa", V023, V039, V057), the small 70M Pythia model occasionally output stray unescaped internal double quotes inside slot string literals (e.g., `"place": "in "place"`, `"date": "june "friday"`).
+- Strict standard library `json.loads` failed to parse the malformed string literal, raising `json.decoder.JSONDecodeError`, which caused the schema validator in `service/app.py` to return HTTP 500 `{"error": "invalid_model_output"}`.
+
+2. Parser Hardening Without Weakening Schema Validation:
+--------------------------------------------------------------------------------
+Implemented `parse_model_json(raw_str)` in `service/app.py`:
+- Preserves standard `json.loads()` as fast path.
+- In case of internal unescaped quotation tokens within slot string values, regex field extraction cleanly isolates the 4 slot boundaries (`"intent"`, `"date"`, `"time"`, `"place"`), strips stray internal quotes, and passes the parsed object to `validate_output()`.
+- Strict schema validation remains 100% intact:
+  * Exactly the 4 canonical keys required.
+  * Intent must strictly match the 8 permitted intents.
+  * Slot values must be string or None.
+  * `FAULT_INJECT=1` continues to return HTTP 500 `{"error": "invalid_model_output"}`.
+  * All 10 unit tests in `tests/test_service_schema.py` PASS.
+
+3. Rebuilt & Imported Docker Image:
+--------------------------------------------------------------------------------
+Command: docker build -t command-parser-service:latest -f service/Dockerfile .
+Container Image Size: 1.64 GB (model weights excluded)
+Import: docker save command-parser-service:latest | docker exec -i k3d-command-parser-server-0 ctr image import -
+
+4. Fresh Continuous Load Rolling Update & Rollback Retest:
+--------------------------------------------------------------------------------
+Command:
+uv run python scratch/run_rolling_update_test.py
+
+Load Parameters:
+- Users: 4
+- Spawn Rate: 4/s
+- Run Time: 2 minutes (120s)
+- Host: http://localhost:8080 (Traefik Ingress)
+- Endpoint: POST /parse
+- Payload: Validation dataset queries
+
+Timeline:
+- 00s - 20s: Baseline continuous traffic on v1 (2 replicas)
+- 20s: Rolling update triggered (`kubectl set env deployment/command-parser -n app MODEL_VERSION=v2 MODEL_URI=models/v2`)
+- 20s - 55s: Rolling update in progress under continuous load; rollout completed successfully
+- 55s - 70s: Continuous traffic served on v2
+- 70s: Rollback triggered (`kubectl rollout undo deployment/command-parser -n app`)
+- 70s - 105s: Rollback to v1 completes under continuous load
+- 105s - 120s: Restored v1 serving traffic; Locust completes 120s run
+
+5. Measured Metrics & Statistics:
+--------------------------------------------------------------------------------
+Locust Output Summary (results/rolling_update_retest_stats.csv):
+- Total Requests: 119
+- Successful Requests (HTTP 200): 119 (100.0%)
+- HTTP 500 Failures: 0 (0.00%)
+- Other Errors (HTTP 502 / 503 / 504): 0 (0.00%)
+- Dropped Connections: 0 (0.00%)
+- Exact Failure Percentage: 0.00%
+- Median Response Time: 3300 ms
+- Average Response Time: 4041.80 ms
+- Min Response Time: 493.60 ms
+- Max Response Time: 12400.16 ms
+- Average Content Size: 76.59 bytes
+- Requests/s: 0.98 req/s
+
+Threshold Verification:
+- Maximum Allowed Failure Rate: 0.5%
+- Measured Failure Rate: 0.00% (PASS)
+
+6. Exact Header Reconciliation:
+--------------------------------------------------------------------------------
+File: results/rolling_update_retest_headers.json
+
+Per Model Version:
+- v1: 50 requests
+- v2: 69 requests
+- Sum (v1 + v2): 119 requests
+- Total Locust Requests: 119 requests
+- Reconciliation Match: 50 + 69 = 119 (100% exact match)
+
+Per Replica Pod:
+- command-parser-5bbd844f5f-lwnzl (v1): 24 requests
+- command-parser-c5c4d5499-cbv92 (v2): 47 requests
+- command-parser-c5c4d5499-ms2r4 (v2): 22 requests
+- command-parser-5bbd844f5f-67n6h (v1 rollback): 26 requests
+- Sum Across Replicas: 24 + 47 + 22 + 26 = 119 requests
+- Reconciliation Match: 100% exact match
+
+7. Rollback Verification:
+--------------------------------------------------------------------------------
+Command: kubectl get deployment command-parser -n app -o jsonpath="{.spec.template.spec.containers[0].env}"
+Active Configuration after Rollback:
+- MODEL_URI: models/v1
+- MODEL_VERSION: v1
+Active Pods:
+- pod/command-parser-5bbd844f5f-67n6h (1/1 Running, 0 restarts)
+- pod/command-parser-5bbd844f5f-mzvv8 (1/1 Running, 0 restarts)
+All active replicas are running v1 with 0 restarts.
+
+8. Status:
+--------------------------------------------------------------------------------
+Task 4 Rolling Update: PASS (Failure Rate 0.00% <= 0.50% threshold)
+All previous test artifacts preserved in results/

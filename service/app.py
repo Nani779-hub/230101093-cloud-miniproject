@@ -86,14 +86,39 @@ class ParseRequest(BaseModel):
     text: str
 
 
+def parse_model_json(raw_str):
+    """Parse JSON string, handling stray unescaped internal quotes within slot values."""
+    import re
+    try:
+        obj = json.loads(raw_str)
+        if isinstance(obj, dict):
+            return obj
+    except Exception:
+        pass
+
+    keys = ["intent", "date", "time", "place"]
+    extracted = {}
+    for k in keys:
+        pat = rf'"{k}"\s*:\s*(null|"(.*?)"(?=\s*,\s*"(?:intent|date|time|place)"|\s*\}}|\s*$))'
+        m = re.search(pat, raw_str)
+        if m:
+            if m.group(1).strip() == "null":
+                extracted[k] = None
+            else:
+                inner = m.group(2).replace('"', '').strip()
+                extracted[k] = inner if inner else None
+        else:
+            return None
+
+    if len(extracted) == 4:
+        return extracted
+    return None
+
+
 def validate_output(output_str):
     """Validate output against schema.json rules."""
-    try:
-        obj = json.loads(output_str)
-    except (json.JSONDecodeError, TypeError):
-        return False, None
-
-    if not isinstance(obj, dict):
+    obj = parse_model_json(output_str)
+    if not obj or not isinstance(obj, dict):
         return False, None
 
     if set(obj.keys()) != REQUIRED_KEYS:

@@ -1,0 +1,74 @@
+================================================================================
+Task 4 Startup Probe Implementation & Verification Evidence
+Course: CS3081 Cloud Computing
+Student Roll Number: 230101093
+Timestamp: 2026-11-08 22:33:30
+================================================================================
+
+1. Exact YAML Configuration (k8s/deployment.yaml):
+--------------------------------------------------------------------------------
+          startupProbe:
+            httpGet:
+              path: /readyz
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 20
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 2
+            timeoutSeconds: 2
+            failureThreshold: 15
+
+2. Validation & Rollout Execution:
+--------------------------------------------------------------------------------
+$ kubectl apply --dry-run=client -f k8s/deployment.yaml
+namespace/app unchanged (dry run)
+secret/s3-credentials configured (dry run)
+deployment.apps/command-parser configured (dry run)
+
+$ kubectl apply -f k8s/deployment.yaml
+namespace/app unchanged
+secret/s3-credentials configured
+deployment.apps/command-parser configured
+
+$ kubectl rollout status deployment/command-parser -n app --timeout=120s
+deployment "command-parser" successfully rolled out
+
+3. Pod Status & Health Inspection:
+--------------------------------------------------------------------------------
+$ kubectl get pods -n app -o wide
+NAME                              READY   STATUS    RESTARTS   AGE    IP           NODE                          NOMINATED NODE   READINESS GATES
+command-parser-5fd76d85cb-j4z8s   1/1     Running   0          116s   10.42.0.53   k3d-command-parser-server-0   <none>           <none>
+
+Probe Configuration Verified from Kubernetes API:
+  Liveness:   http-get http://:8000/healthz delay=15s timeout=5s period=10s #success=1 #failure=5
+  Readiness:  http-get http://:8000/readyz delay=10s timeout=2s period=2s #success=1 #failure=15
+  Startup:    http-get http://:8000/readyz delay=5s timeout=1s period=5s #success=1 #failure=20
+  Restart Count: 0
+
+4. Live Ingress Request Test (/parse):
+--------------------------------------------------------------------------------
+$ curl -i -X POST http://localhost:8080/parse -H "Content-Type: application/json" -d '{"text": "schedule a meeting tomorrow at two pm"}'
+HTTP/1.1 200 OK
+Content-Length: 79
+Content-Type: application/json
+Date: Sun, 08 Nov 2026 17:03:12 GMT
+Server: uvicorn
+X-Model-Version: v1
+X-Served-By: command-parser-5fd76d85cb-j4z8s
+
+{"intent": "calendar_set", "date": "tomorrow", "time": "two pm", "place": null}
+================================================================================
+STATUS: PASS - Startup probe active, 0 restarts, rollout completed successfully.

@@ -1,9 +1,10 @@
 # Cloud Computing Mini Project: Knowledge Distillation & Cloud-Native Deployment
 
-**Course:** CS3081 Cloud Computing  
-**Student Name:** Sabavat Sachith Naik  
-**Roll Number:** 230101093  
-**Hardware Environment:** Intel Core i5-1334U (10 cores), 16 GB RAM  
+**Course:** CS3081 Cloud Computing
+**Student Name:** Sabavat Sachith Naik
+**Roll Number:** 230101093
+**GitHub Repository:** https://github.com/Nani779-hub/230101093-cloud-miniproject
+**Hardware Environment:** Intel Core i5-1334U (10 cores), 16 GB RAM
 **Software Stack:** Python 3.11.9, Docker Desktop, k3d / k3s Kubernetes, SeaweedFS S3, FastAPI, Uvicorn, PyTorch (CPU-only), Hugging Face Transformers, Flake8, Pytest, Locust.
 
 ---
@@ -35,7 +36,7 @@ This repository delivers an end-to-end, reproducible, cloud-native microservice 
 5. **Kubernetes Deployment, HPA, Scaling & Reliability (`k8s/`, `cluster/k3d.yaml`):**
    - Deployed on k3d cluster with Traefik Ingress routing `/parse` on port 8080.
    - HPA: min 1, max 2 replicas, target CPU 70%.
-   - Rolling update v1 -> v2 -> v1 under load: 127 requests served across both versions with zero connection drops (preStop hook).
+   - Rolling update v1 -> v2 -> v1 under load: 119 requests served across both versions (50 on v1, 69 on v2) with zero failures (0.00% error rate) and zero connection drops (preStop hook).
    - Pod recovery: deleted 1 pod under load; restored replica count in < 20s with zero dropped connections.
    - Cold starts: Run 1 = 72.58s, Run 2 = 9.82s, Run 3 = 19.02s -> Median = 19.02s.
    - Load balancing: 2 Ready replicas served 51.0% vs 49.0% of requests (both >> 30%).
@@ -44,11 +45,11 @@ This repository delivers an end-to-end, reproducible, cloud-native microservice 
    - Stateless NACL rules: 100% verified (6/6) with `cloud_assignment/tools/nacl_sim.py`.
 7. **Reproducibility, Unit Tests & CI/CD (`Makefile`, `tests/`, `.github/workflows/ci.yml`):**
    - Flake8 linter clean (0 errors).
-   - 23 unit tests passing in < 5s (`tests/test_cleaning_rules.py`, `tests/test_service_schema.py`, `tests/test_nacl_rules.py`).
+   - 28 unit tests passing (`tests/test_cleaning_rules.py`, `tests/test_service_schema.py`, `tests/test_nacl_rules.py`, `tests/test_pipeline.py`).
    - GitHub Actions workflow stages: linting -> unit tests -> model evaluation (quality gate >= 95%) -> secret scanning (Gitleaks).
 8. **Performance, Cost & Architectural Review (`results/`):**
    - Locust 2-minute load test (4 users): 151 requests, 147 successful, p50 = 2,500 ms, p95 = 6,300 ms, throughput 1.28 req/s.
-   - Estimated cost: 1.79–2.39 INR per 1,000 requests.
+   - Estimated cost: 1.79-2.39 INR per 1,000 requests.
    - SLO: 95.0% target over 2m window; achieved 97.35% (4 errors out of 151 requests).
 
 ---
@@ -57,53 +58,53 @@ This repository delivers an end-to-end, reproducible, cloud-native microservice 
 
 ```text
 .
-├── cloud_assignment/       # Immutable assignment kit (data, tools, schema, rate_card)
-├── prompts/
-│   └── teacher_prompt.txt  # System prompt for Phi-3.5 4-key JSON generation
-├── worker/
-│   ├── clean.py            # Shard cleaning, validation, deduplication, S3 upload
-│   ├── worker.py           # Sharded worker script for teacher dataset generation
-│   └── Dockerfile          # Containerfile for worker jobs
-├── training/
-│   ├── config.yaml         # Training hyperparameters and environment versions
-│   ├── train.py            # Causal LM training loop with loss logging
-│   └── loss.csv            # Measured epoch loss history
-├── service/
-│   ├── app.py              # FastAPI microservice (/parse, /healthz, /readyz)
-│   └── requirements.txt    # Pinned production dependencies
-├── cluster/
-│   └── k3d.yaml            # k3d cluster specification (port 8080:80)
-├── storage/
-│   └── seaweedfs.yaml      # SeaweedFS deployment in 'data' namespace
-├── k8s/
-│   ├── namespace.yaml      # Namespaces: data, pipeline, app
-│   ├── secret.yaml         # Development S3 credentials
-│   ├── deployment.yaml     # 2 replicas, probes, resource limits
-│   ├── service.yaml        # ClusterIP service
-│   ├── ingress.yaml        # Traefik Ingress routing /parse
-│   └── hpa.yaml            # HorizontalPodAutoscaler (min 1, max 2, 70% CPU)
-├── network/
-│   ├── subnets.md          # Subnet allocation table, working, and technical rationale
-│   └── nacl.json           # Stateless NACL rules for public subnet
-├── tests/
-│   ├── test_cleaning_rules.py  # Unit tests for data cleaning rules (a)-(e)
-│   ├── test_service_schema.py  # Unit tests for FastAPI endpoints & validation
-│   └── test_nacl_rules.py      # Unit tests for stateless NACL evaluation
-├── .github/
-│   └── workflows/
-│       └── ci.yml          # CI/CD pipeline (lint, test, model eval, gitleaks)
-├── results/                # Complete empirical logs, predictions, and benchmarks
-├── report/
-│   ├── generate_report.py  # ReportLab PDF report generator
-│   └── report.pdf          # 3-page academic report
-├── reflection/
-│   └── 230101093.pdf       # 3-page student reflection document
-├── Dockerfile              # Production CPU-only container image build
-├── Makefile                # Lifecycle management targets
-├── AI_USE.md               # AI transparency disclosure
-├── COMPLETION_STATUS.md    # Requirement verification matrix
-├── FINAL_AUDIT.md          # Post-execution compliance audit
-└── README.md
+|-- cloud_assignment/       # Immutable assignment kit (data, tools, schema, rate_card)
+|-- prompts/
+|   \-- teacher_prompt.txt  # System prompt for Phi-3.5 4-key JSON generation
+|-- worker/
+|   |-- clean.py            # Shard cleaning, validation, deduplication, S3 upload
+|   |-- worker.py           # Sharded worker script for teacher dataset generation
+|   \-- Dockerfile          # Containerfile for worker jobs
+|-- training/
+|   |-- config.yaml         # Training hyperparameters and environment versions
+|   |-- train.py            # Causal LM training loop with loss logging
+|   \-- loss.csv            # Measured epoch loss history
+|-- service/
+|   |-- app.py              # FastAPI microservice (/parse, /healthz, /readyz)
+|   \-- requirements.txt    # Pinned production dependencies
+|-- cluster/
+|   \-- k3d.yaml            # k3d cluster specification (port 8080:80)
+|-- storage/
+|   \-- seaweedfs.yaml      # SeaweedFS deployment in 'data' namespace
+|-- k8s/
+|   |-- namespace.yaml      # Namespaces: data, pipeline, app
+|   |-- secret.yaml         # Development S3 credentials
+|   |-- deployment.yaml     # 2 replicas, probes, resource limits
+|   |-- service.yaml        # ClusterIP service
+|   |-- ingress.yaml        # Traefik Ingress routing /parse
+|   \-- hpa.yaml            # HorizontalPodAutoscaler (min 1, max 2, 70% CPU)
+|-- network/
+|   |-- subnets.md          # Subnet allocation table, working, and technical rationale
+|   \-- nacl.json           # Stateless NACL rules for public subnet
+|-- tests/
+|   |-- test_cleaning_rules.py  # Unit tests for data cleaning rules (a)-(e)
+|   |-- test_service_schema.py  # Unit tests for FastAPI endpoints & validation
+|   \-- test_nacl_rules.py      # Unit tests for stateless NACL evaluation
+|-- .github/
+|   \-- workflows/
+|       \-- ci.yml          # CI/CD pipeline (lint, test, model eval, gitleaks)
+|-- results/                # Complete empirical logs, predictions, and benchmarks
+|-- report/
+|   |-- generate_report.py  # ReportLab PDF report generator
+|   \-- report.pdf          # 3-page academic report
+|-- reflection/
+|   \-- 230101093.pdf       # 3-page student reflection document
+|-- Dockerfile              # Production CPU-only container image build
+|-- Makefile                # Lifecycle management targets
+|-- AI_USE.md               # AI transparency disclosure
+|-- COMPLETION_STATUS.md    # Requirement verification matrix
+|-- FINAL_AUDIT.md          # Post-execution compliance audit
+\-- README.md
 ```
 
 ---
@@ -131,7 +132,7 @@ This single command:
 ```bash
 make test
 ```
-Executes all 23 unit tests across cleaning rules, service schema validation, probes, and stateless NACL simulation.
+Executes all 28 unit tests across cleaning rules, service schema validation, pipeline evaluation, and stateless NACL simulation.
 
 ### Run Code Linter (`make lint`)
 ```bash

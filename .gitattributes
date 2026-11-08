@@ -8,3 +8,6 @@
 Makefile text eol=lf
 Dockerfile text eol=lf
 
+
+# Treat PDF documents as binary files
+*.pdf binary

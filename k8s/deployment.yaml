@@ -72,6 +72,13 @@ spec:
             preStop:
               exec:
                 command: ["/bin/sleep", "3"]
+          startupProbe:
+            httpGet:
+              path: /readyz
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 20
           livenessProbe:
             httpGet:
               path: /healthz

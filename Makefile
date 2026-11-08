@@ -75,7 +75,7 @@ lint:
 
 test:
 	@echo "Running test suite..."
-	$(PYTHON) -m pytest tests/test_cleaning_rules.py tests/test_service_schema.py tests/test_nacl_rules.py -v
+	$(PYTHON) -m pytest tests/test_cleaning_rules.py tests/test_service_schema.py tests/test_nacl_rules.py tests/test_pipeline.py -v
 
 train:
 	@echo "Fine-tuning Pythia-70M student model (SUBSET=$(SUBSET))..."
