@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: teacher-worker-1
+  namespace: pipeline
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: teacher-worker
+        shard: "1"
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: worker
+          image: command-parser-worker:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: SHARD_INDEX
+              value: "1"
+            - name: SHARD_COUNT
+              value: "2"
+            - name: OLLAMA_HOST
+              value: "http://host.k3d.internal:11434"
+            - name: S3_ENDPOINT
+              value: "http://seaweedfs.data.svc.cluster.local:8333"
+            - name: AWS_ACCESS_KEY_ID
+              value: "admin"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "admin"
+            - name: BUCKET
+              value: "datasets"
+

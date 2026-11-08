@@ -1,0 +1,17 @@
+# Training configuration for Pythia-70M fine-tuning
+# CS3081 Cloud Computing Mini-Project (Roll Number: 230101093)
+model_name: "EleutherAI/pythia-70m"
+seed: 42
+learning_rate: 5.0e-5
+batch_size: 8
+epochs: 5
+epochs_v2: 7
+max_sequence_length: 80
+max_train_records: 1500
+
+# Library versions (recorded at training time)
+library_versions:
+  python: "3.11.9"
+  torch: "2.15.0+cpu"
+  transformers: "5.22.2"
+  pyyaml: "6.0.3"

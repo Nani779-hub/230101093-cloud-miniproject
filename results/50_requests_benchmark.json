@@ -1,0 +1,13 @@
+{
+  "total_requests": 50,
+  "successful_requests": 48,
+  "failed_requests": 2,
+  "avg_latency_sec": 4.929,
+  "p50_latency_sec": 4.87,
+  "p95_latency_sec": 6.227,
+  "peak_memory_mib": 333.9,
+  "peak_memory_gib": 0.326,
+  "memory_limit": "1 GiB",
+  "cpu_limit": "1 CPU core",
+  "oom_killed": false
+}

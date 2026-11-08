@@ -1,0 +1,66 @@
+============================================================
+50-Request Benchmark Under Resource Limits (1 CPU, 1 GiB RAM)
+Timestamp: 2026-11-08 12:53:04
+============================================================
+[01/50] ID=V001 Status=200 Time=5.209s Stats: 333.5MiB / 1GiB | 2.50%
+[02/50] ID=V002 Status=200 Time=7.593s Stats: 333.9MiB / 1GiB | 0.34%
+[03/50] ID=V003 Status=200 Time=5.332s Stats: 333.6MiB / 1GiB | 0.26%
+[04/50] ID=V004 Status=200 Time=5.133s Stats: 333.2MiB / 1GiB | 0.24%
+[05/50] ID=V005 Status=200 Time=5.052s Stats: 333MiB / 1GiB | 0.86%
+[06/50] ID=V006 Status=200 Time=4.517s Stats: 333.1MiB / 1GiB | 0.21%
+[07/50] ID=V007 Status=200 Time=5.359s Stats: 333.1MiB / 1GiB | 0.24%
+[08/50] ID=V008 Status=200 Time=4.623s Stats: 333.1MiB / 1GiB | 0.25%
+[09/50] ID=V009 Status=200 Time=5.429s Stats: 333.3MiB / 1GiB | 0.44%
+[10/50] ID=V010 Status=200 Time=4.017s Stats: 333.6MiB / 1GiB | 0.21%
+[11/50] ID=V011 Status=200 Time=4.329s Stats: 333.1MiB / 1GiB | 0.23%
+[12/50] ID=V012 Status=200 Time=4.240s Stats: 333.1MiB / 1GiB | 0.20%
+[13/50] ID=V013 Status=200 Time=3.937s Stats: 333.1MiB / 1GiB | 0.20%
+[14/50] ID=V014 Status=200 Time=4.262s Stats: 333.1MiB / 1GiB | 0.65%
+[15/50] ID=V015 Status=200 Time=4.114s Stats: 333.1MiB / 1GiB | 0.19%
+[16/50] ID=V016 Status=200 Time=4.027s Stats: 333.4MiB / 1GiB | 0.24%
+[17/50] ID=V017 Status=200 Time=4.445s Stats: 333.4MiB / 1GiB | 1.40%
+[18/50] ID=V018 Status=200 Time=4.728s Stats: 333.4MiB / 1GiB | 1.16%
+[19/50] ID=V019 Status=200 Time=4.128s Stats: 333.1MiB / 1GiB | 1.88%
+[20/50] ID=V020 Status=200 Time=4.601s Stats: 332.9MiB / 1GiB | 2.46%
+[21/50] ID=V021 Status=200 Time=3.799s Stats: 333.1MiB / 1GiB | 0.71%
+[22/50] ID=V022 Status=200 Time=5.257s Stats: 333.2MiB / 1GiB | 1.47%
+[23/50] ID=V023 Status=200 Time=5.186s Stats: 332.9MiB / 1GiB | 2.12%
+[24/50] ID=V024 Status=200 Time=5.408s Stats: 333.2MiB / 1GiB | 0.27%
+[25/50] ID=V025 Status=200 Time=5.119s Stats: 333.7MiB / 1GiB | 0.23%
+[26/50] ID=V026 Status=200 Time=4.623s Stats: 333.2MiB / 1GiB | 0.23%
+[27/50] ID=V027 Status=200 Time=4.936s Stats: 333.2MiB / 1GiB | 0.24%
+[28/50] ID=V028 Status=200 Time=4.537s Stats: 332.9MiB / 1GiB | 0.23%
+[29/50] ID=V029 Status=200 Time=5.110s Stats: 333.2MiB / 1GiB | 0.25%
+[30/50] ID=V030 Status=200 Time=6.109s Stats: 333MiB / 1GiB | 0.22%
+[31/50] ID=V031 Status=200 Time=5.056s Stats: 332.7MiB / 1GiB | 0.19%
+[32/50] ID=V032 Status=200 Time=5.411s Stats: 333.2MiB / 1GiB | 0.22%
+[33/50] ID=V033 Status=200 Time=6.304s Stats: 333MiB / 1GiB | 0.24%
+[34/50] ID=V034 Status=200 Time=4.842s Stats: 333.3MiB / 1GiB | 0.24%
+[35/50] ID=V035 Status=200 Time=5.017s Stats: 333.3MiB / 1GiB | 0.22%
+[36/50] ID=V036 Status=200 Time=4.954s Stats: 333.3MiB / 1GiB | 0.24%
+[37/50] ID=V037 Status=200 Time=5.022s Stats: 333MiB / 1GiB | 0.24%
+[38/50] ID=V038 Status=200 Time=4.431s Stats: 333MiB / 1GiB | 0.24%
+[39/50] ID=V039 Status=200 Time=4.319s Stats: 333.3MiB / 1GiB | 0.24%
+[40/50] ID=V040 Status=200 Time=4.723s Stats: 333MiB / 1GiB | 0.25%
+[41/50] ID=V041 Status=200 Time=4.540s Stats: 333MiB / 1GiB | 0.61%
+[42/50] ID=V042 Status=500 Time=4.822s Stats: 333MiB / 1GiB | 0.76%
+[43/50] ID=V043 Status=200 Time=4.826s Stats: 332.8MiB / 1GiB | 0.23%
+[44/50] ID=V044 Status=200 Time=6.227s Stats: 333.3MiB / 1GiB | 0.25%
+[45/50] ID=V045 Status=200 Time=5.820s Stats: 333.3MiB / 1GiB | 0.28%
+[46/50] ID=V046 Status=200 Time=4.870s Stats: 333.5MiB / 1GiB | 0.22%
+[47/50] ID=V047 Status=200 Time=4.532s Stats: 333.3MiB / 1GiB | 0.21%
+[48/50] ID=V048 Status=200 Time=4.820s Stats: 333MiB / 1GiB | 0.22%
+[49/50] ID=V049 Status=500 Time=5.229s Stats: 333.3MiB / 1GiB | 0.23%
+[50/50] ID=V050 Status=200 Time=5.505s Stats: 333.6MiB / 1GiB | 0.27%
+============================================================
+SUMMARY RESULTS:
+Total Requests:       50
+Successful Requests:  48
+Failed Requests:      2
+Average Latency:      4.929s
+p50 Latency:          4.87s
+p95 Latency:          6.227s
+Peak Memory Observed: 333.9 MiB (0.326 GiB)
+Memory Limit:         1 GiB (No OOM Kill)
+CPU Limit:            1 CPU core
+============================================================

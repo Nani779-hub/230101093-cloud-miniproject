@@ -1,0 +1,122 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master, failing-gate-demo ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      test_bad_model:
+        description: 'Demonstrate quality gate rejecting bad model'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  # ----------------------------------------------------------------------------
+  # Stage 1: Linting
+  # ----------------------------------------------------------------------------
+  lint:
+    name: Linting (Flake8)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install linter
+        run: pip install flake8
+
+      - name: Run Flake8
+        run: flake8 --max-line-length=120 --ignore=E402,E501,W503 worker service tests training
+
+  # ----------------------------------------------------------------------------
+  # Stage 2: Unit Tests (At least 3 tests)
+  # ----------------------------------------------------------------------------
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: [lint]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install pytest fastapi httpx pydantic boto3
+
+      - name: Run Unit Tests
+        env:
+          PYTHONPATH: .
+        run: |
+          pytest tests/test_cleaning_rules.py tests/test_service_schema.py tests/test_nacl_rules.py -v
+
+  # ----------------------------------------------------------------------------
+  # Stage 3: Model Evaluation & Quality Gate
+  # ----------------------------------------------------------------------------
+  model-evaluation:
+    name: Model Evaluation & Quality Gate
+    runs-on: ubuntu-latest
+    needs: [unit-tests]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Download Model from GitHub Release
+        id: download_release
+        run: |
+          mkdir -p models/v1
+          echo "Attempting download of student model release assets..."
+          if command -v gh &> /dev/null && gh release view v1.0.0 --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release download v1.0.0 --dir models/v1 --repo "$GITHUB_REPOSITORY"
+            echo "Downloaded model release asset."
+          else
+            echo "Release not found or running locally; using checked results."
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Evaluate Predictions against Validation Set
+        run: |
+          # If deliberately testing bad model, use untrained predictions (0% validity)
+          if [ "${{ inputs.test_bad_model }}" = "true" ] || [ "${{ github.ref_name }}" = "failing-gate-demo" ]; then
+            echo "--- DEMONSTRATING DELIBERATELY BAD MODEL EVALUATION ---"
+            PRED_FILE="results/untrained_predictions.jsonl"
+          else
+            PRED_FILE="results/student_v1_predictions.jsonl"
+          fi
+          echo "Scoring predictions from $PRED_FILE against validation set..."
+          python cloud_assignment/tools/score.py "$PRED_FILE" cloud_assignment/data/validation.jsonl --min-validity 95 --out results/ci_score_report.json
+
+  # ----------------------------------------------------------------------------
+  # Stage 4: Secret Scanning (Gitleaks)
+  # ----------------------------------------------------------------------------
+  secret-scan:
+    name: Secret Scanning (Gitleaks)
+    runs-on: ubuntu-latest
+    needs: [model-evaluation]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks Secret Scanner
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

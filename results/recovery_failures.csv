@@ -1,0 +1,3 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+POST,/parse,CatchResponseError('HTTP 502'),1,2026-11-08T08:27:00Z,2026-11-08T08:27:00Z
+POST,/parse,CatchResponseError('HTTP 500'),5,2026-11-08T08:27:14Z,2026-11-08T08:27:46Z

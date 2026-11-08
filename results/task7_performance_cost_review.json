@@ -1,0 +1,54 @@
+{
+  "load_test": {
+    "command": "locust -f tools/locustfile.py --headless --users 4 --spawn-rate 4 --run-time 2m --host http://localhost:8080 --csv results/loadtest",
+    "total_requests": 113,
+    "successful_requests": 110,
+    "failed_requests": 3,
+    "error_rate_percent": 2.65,
+    "throughput_rps": 0.9481,
+    "p50_latency_ms": 2800,
+    "p95_latency_ms": 9000,
+    "min_latency_ms": 595,
+    "max_latency_ms": 9678,
+    "replica_balance": {
+      "command-parser-78db759f9b-fhtrc": 57,
+      "command-parser-78db759f9b-xckf9": 53
+    },
+    "pod_cpu_memory_under_load": {
+      "command-parser-78db759f9b-fhtrc": {"cpu": "554m", "memory": "349Mi"},
+      "command-parser-78db759f9b-xckf9": {"cpu": "549m", "memory": "362Mi"}
+    }
+  },
+  "cold_start": {
+    "run_1_sec": 72.58,
+    "run_2_sec": 9.82,
+    "run_3_sec": 19.02,
+    "median_sec": 19.02
+  },
+  "cost_estimation": {
+    "rate_card": {
+      "vcpu_hour_inr": 3.50,
+      "gib_memory_hour_inr": 0.45
+    },
+    "replica_resources": {
+      "replicas": 2,
+      "cpu_limit_per_replica": "1 vCPU",
+      "memory_limit_per_replica": "1 GiB"
+    },
+    "hourly_cost_per_replica_inr": 3.95,
+    "total_hourly_cost_all_replicas_inr": 7.90,
+    "requests_served_per_hour": 3300,
+    "formula": "cost_per_1000_requests = (hourly cost of all running replicas / requests served per hour) * 1000",
+    "cost_per_1000_requests_inr": 2.39
+  },
+  "slo": {
+    "objective": "95% of requests succeed with HTTP 200 within 30 seconds",
+    "window": "One 2-minute Locust load-test run (113 requests)",
+    "target_success_percent": 95.0,
+    "error_budget_requests": 5.65,
+    "actual_failures": 3,
+    "budget_used_percent": 53.1,
+    "slo_met": true,
+    "measured_success_percent": 97.35
+  }
+}

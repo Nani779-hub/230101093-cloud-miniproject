@@ -1,0 +1,7 @@
+{
+  "run_1_sec": 72.58,
+  "run_2_sec": 9.82,
+  "run_3_sec": 19.02,
+  "median_sec": 19.02,
+  "log_evidence": "INFO:     Started server process [1]\nINFO:     Waiting for application startup.\nINFO:app:Downloading model from S3: models/models/v1\nINFO:app:  Downloading models/v1/config.json -> /tmp/model/config.json\nINFO:app:  Downloading models/v1/generation_config.json -> /tmp/model/generation_config.json\nINFO:app:  Downloading models/v1/model.safetensors -> /tmp/model/model.safetensors\nINFO:app:  Downloading models/v1/model.sha256 -> /tmp/model/model.sha256\nINFO:app:  Downloading models/v1/tokenizer.json -> /tmp/model/tokenizer.json\nINFO:app:  Downloading models/v1/tokenizer_config.json -> /tmp/model/tokenizer_config.json\nINFO:app:Loading model into memory...\nINFO:app:Model loaded successfully (version: v1)\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)\nINFO:     10.42.0.1:49676 - \"GET /healthz HTTP/1.1\" 200 OK\nINFO:     10.42.0.1:49682 - \"GET /readyz HTTP/1.1\" 200 OK\nINFO:     10.42.0.1:35416 - \"GET /readyz HTTP/1.1\" 200 OK"
+}

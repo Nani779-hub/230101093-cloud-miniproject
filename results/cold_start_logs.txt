@@ -1,0 +1,23 @@
+=== Cold Start Measurements over 3 Runs ===
+Run 1: 72.58s
+Run 2: 9.82s
+Run 3: 19.02s
+Median Cold-Start Time: 19.02s
+
+=== S3 Model Download Log Evidence ===
+INFO:     Started server process [1]
+INFO:     Waiting for application startup.
+INFO:app:Downloading model from S3: models/models/v1
+INFO:app:  Downloading models/v1/config.json -> /tmp/model/config.json
+INFO:app:  Downloading models/v1/generation_config.json -> /tmp/model/generation_config.json
+INFO:app:  Downloading models/v1/model.safetensors -> /tmp/model/model.safetensors
+INFO:app:  Downloading models/v1/model.sha256 -> /tmp/model/model.sha256
+INFO:app:  Downloading models/v1/tokenizer.json -> /tmp/model/tokenizer.json
+INFO:app:  Downloading models/v1/tokenizer_config.json -> /tmp/model/tokenizer_config.json
+INFO:app:Loading model into memory...
+INFO:app:Model loaded successfully (version: v1)
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     10.42.0.1:49676 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     10.42.0.1:49682 - "GET /readyz HTTP/1.1" 200 OK
+INFO:     10.42.0.1:35416 - "GET /readyz HTTP/1.1" 200 OK

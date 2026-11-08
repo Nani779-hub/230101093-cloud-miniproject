@@ -1,0 +1,68 @@
+# Python & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.venv/
+venv/
+env/
+ENV/
+
+# Model Weights, Checkpoints & Binary Artifacts
+# Note: Model weights are uploaded to GitHub Releases and SeaweedFS object storage, not committed to Git.
+*.bin
+*.pt
+*.pth
+*.onnx
+*.safetensors
+*.gguf
+*.h5
+*.tflite
+*.ckpt
+checkpoints/
+models/
+
+# Temporary Files & Test Caches
+*.tmp
+*.temp
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+*.swp
+*~
+
+# IDE & OS Metadata
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Credentials, Real Secrets & Local Cluster Tokens
+# Note: k8s/secret.yaml contains dummy local development credentials and is tracked for reproducibility.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.cert
+*.crt
+credentials.json
+*secret*.json
+*.secret
+!k8s/secret.yaml
+id_rsa*
+*.kubeconfig
+kubeconfig*
+
+# Preserve original assignment kit completely
+!cloud_assignment/
+!cloud_assignment/**
