@@ -1,0 +1,9 @@
+# Enforce LF endings on all dataset and model artifact files to preserve SHA-256 integrity
+*.jsonl text eol=lf
+*.json text eol=lf
+*.sha256 text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.py text eol=lf
+Makefile text eol=lf
+Dockerfile text eol=lf

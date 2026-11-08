@@ -27,6 +27,9 @@ checkpoints/
 models/
 
 # Temporary Files & Test Caches
+*.zip
+*.tar
+*.tar.gz
 *.tmp
 *.temp
 .pytest_cache/

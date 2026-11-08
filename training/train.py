@@ -30,10 +30,57 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_DIR = os.path.dirname(SCRIPT_DIR)
 
 
-def load_config():
-    config_path = os.path.join(SCRIPT_DIR, "config.yaml")
-    with open(config_path, "r") as f:
-        return yaml.safe_load(f)
+def load_config(config_path=None):
+    if config_path is None:
+        config_path = os.path.join(SCRIPT_DIR, "config.yaml")
+    if os.path.exists(config_path):
+        with open(config_path, "r", encoding="utf-8") as f:
+            return yaml.safe_load(f)
+    return {
+        "model": {"base_model": "EleutherAI/pythia-70m", "max_records": 1500},
+        "seed": 42,
+        "model_name": "EleutherAI/pythia-70m",
+        "max_sequence_length": 64,
+        "batch_size": 16,
+        "learning_rate": 5e-5,
+        "epochs": 3,
+    }
+
+
+def format_training_prompt(text, label):
+    """Format input text and label dictionary into causal training prompt."""
+    if isinstance(label, dict):
+        raw = json.dumps(label)
+    else:
+        raw = str(label)
+    return f"Command: {text}\nJSON: {raw}"
+
+
+def load_dataset(file_path, max_records=None):
+    """Load JSONL dataset up to max_records."""
+    records = []
+    if os.path.exists(file_path):
+        with open(file_path, "r", encoding="utf-8") as f:
+            for line in f:
+                if line.strip():
+                    records.append(json.loads(line))
+                    if max_records and len(records) >= max_records:
+                        break
+    return records
+
+
+def record_loss(csv_path, loss_log):
+    """Save epoch loss logs to CSV."""
+    with open(csv_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=["epoch", "loss"])
+        writer.writeheader()
+        for row in loss_log:
+            loss_val = row.get("loss")
+            if isinstance(loss_val, float):
+                formatted_loss = f"{loss_val:.4f}"
+            else:
+                formatted_loss = loss_val
+            writer.writerow({"epoch": row.get("epoch"), "loss": formatted_loss})
 
 
 class CommandDataset(Dataset):
@@ -43,9 +90,10 @@ class CommandDataset(Dataset):
         self.examples = []
         for rec in records:
             text = rec["text"]
-            teacher_raw = rec["teacher_raw"]
-            # Format: Command: <text>\nJSON: <teacher reply><eos>
-            prompt = f"Command: {text}\nJSON: {teacher_raw}"
+            teacher_raw = rec.get("teacher_raw")
+            if teacher_raw is None:
+                teacher_raw = {k: rec.get(k) for k in ["intent", "date", "time", "place"] if k in rec}
+            prompt = format_training_prompt(text, teacher_raw)
             encoding = tokenizer(
                 prompt,
                 truncation=True,
@@ -96,15 +144,8 @@ def train(config, subset=None, version="v1"):
 
     # Load data
     data_path = os.path.join(PROJECT_DIR, "data", "train.jsonl")
-    records = []
-    with open(data_path, encoding="utf-8") as f:
-        for line in f:
-            if line.strip():
-                records.append(json.loads(line))
-
-    # Use first N records
     max_records = subset if subset else config.get("max_train_records", 1500)
-    records = records[:max_records]
+    records = load_dataset(data_path, max_records=max_records)
     print(f"Training on {len(records)} records (version: {version})")
 
     # Load model and tokenizer
@@ -173,10 +214,7 @@ def train(config, subset=None, version="v1"):
 
     # Save loss.csv
     loss_csv_path = os.path.join(SCRIPT_DIR, "loss.csv")
-    with open(loss_csv_path, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=["epoch", "loss"])
-        writer.writeheader()
-        writer.writerows(loss_log)
+    record_loss(loss_csv_path, loss_log)
     print(f"Saved loss log to {loss_csv_path}")
 
     # Save model

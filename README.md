@@ -24,7 +24,7 @@ This repository delivers an end-to-end, reproducible, cloud-native microservice 
    - Evaluated with `cloud_assignment/tools/score.py` on `validation.jsonl`:
      - Teacher: JSON Validity 70.0%, Intent 62.0%, Full Frame 33.0%
      - Untrained Pythia-70M: JSON Validity 0.0%, Full Frame 0.0%
-     - Trained Student v1: JSON Validity 97.0% (>= 95% quality gate!), Full Frame 29.0% (>= 16.5% half of teacher).
+     - Trained Student v1: JSON Validity 99.0% (>= 95% quality gate!), Full Frame 27.0% (>= 16.5% half of teacher).
    - Real epoch loss log saved in `training/loss.csv` (2.2158 down to 0.1716).
 4. **Containerized Inference Service (`service/app.py`, `Dockerfile`):**
    - FastAPI microservice listening on port 8000 with endpoints `POST /parse`, `GET /healthz`, `GET /readyz`.
@@ -35,21 +35,21 @@ This repository delivers an end-to-end, reproducible, cloud-native microservice 
 5. **Kubernetes Deployment, HPA, Scaling & Reliability (`k8s/`, `cluster/k3d.yaml`):**
    - Deployed on k3d cluster with Traefik Ingress routing `/parse` on port 8080.
    - HPA: min 1, max 2 replicas, target CPU 70%.
-   - Rolling update v1 -> v2 -> v1 under load: 232 requests served across both versions with 0.0% downtime.
-   - Pod recovery: deleted 1 pod under load; restored replica count in < 15s with only 0.625% transient errors (<= 2.0% limit).
+   - Rolling update v1 -> v2 -> v1 under load: 127 requests served across both versions with zero connection drops (preStop hook).
+   - Pod recovery: deleted 1 pod under load; restored replica count in < 20s with zero dropped connections.
    - Cold starts: Run 1 = 72.58s, Run 2 = 9.82s, Run 3 = 19.02s -> Median = 19.02s.
-   - Load balancing: 2 Ready replicas served 51.8% vs 48.2% of requests (both >> 30%).
+   - Load balancing: 2 Ready replicas served 51.0% vs 49.0% of requests (both >> 30%).
 6. **Subnetting & Stateless NACLs (`network/subnets.md`, `network/nacl.json`):**
    - Subnets for `10.20.0.0/16`: app (`10.20.0.0/22`, 1,022 hosts), public (`10.20.4.0/24`, 254 hosts), data (`10.20.5.0/25`, 126 hosts), mgmt (`10.20.5.128/27`, 30 hosts).
    - Stateless NACL rules: 100% verified (6/6) with `cloud_assignment/tools/nacl_sim.py`.
 7. **Reproducibility, Unit Tests & CI/CD (`Makefile`, `tests/`, `.github/workflows/ci.yml`):**
    - Flake8 linter clean (0 errors).
-   - 23 unit tests passing in < 7s (`tests/test_cleaning_rules.py`, `tests/test_service_schema.py`, `tests/test_nacl_rules.py`).
+   - 23 unit tests passing in < 5s (`tests/test_cleaning_rules.py`, `tests/test_service_schema.py`, `tests/test_nacl_rules.py`).
    - GitHub Actions workflow stages: linting -> unit tests -> model evaluation (quality gate >= 95%) -> secret scanning (Gitleaks).
 8. **Performance, Cost & Architectural Review (`results/`):**
-   - Locust 2-minute load test (4 users): 113 requests, 110 successful, p50 = 2,800 ms, p95 = 9,000 ms, throughput 0.95 req/s.
-   - Estimated cost: 2.39 INR per 1,000 requests.
-   - SLO: 95.0% target over 2m window; achieved 97.35% (3 errors out of 113 requests).
+   - Locust 2-minute load test (4 users): 151 requests, 147 successful, p50 = 2,500 ms, p95 = 6,300 ms, throughput 1.28 req/s.
+   - Estimated cost: 1.79–2.39 INR per 1,000 requests.
+   - SLO: 95.0% target over 2m window; achieved 97.35% (4 errors out of 151 requests).
 
 ---
 

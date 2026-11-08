@@ -52,12 +52,12 @@ logger = logging.getLogger(__name__)
 MODEL_URI = os.environ.get("MODEL_URI", "models/v1")
 MODEL_VERSION = os.environ.get("MODEL_VERSION", "v1")
 S3_ENDPOINT = os.environ.get("S3_ENDPOINT", "http://seaweedfs.data.svc.cluster.local:8333")
-MAX_NEW_TOKENS = int(os.environ.get("MAX_NEW_TOKENS", "150"))
+MAX_NEW_TOKENS = int(os.environ.get("MAX_NEW_TOKENS", "50"))
 FAULT_INJECT = os.environ.get("FAULT_INJECT", "0") == "1"
 POD_NAME = os.environ.get("HOSTNAME", "unknown")
 
-AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID", "admin")
-AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY", "admin")
+AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
 BUCKET = os.environ.get("BUCKET", "models")
 
 VALID_INTENTS = {

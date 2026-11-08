@@ -1,7 +1,7 @@
 apiVersion: k3d.io/v1alpha5
 kind: Simple
 metadata:
-  name: mini-project-cluster
+  name: command-parser
 servers: 1
 agents: 1
 ports:

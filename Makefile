@@ -8,7 +8,7 @@ else
     FLAKE8 ?= $(if $(wildcard .venv/bin/flake8),.venv/bin/flake8,flake8)
 endif
 
-K3D_CLUSTER_NAME ?= mini-project-cluster
+K3D_CLUSTER_NAME ?= command-parser
 IMAGE_NAME ?= command-parser-service:latest
 SUBSET ?= 1500
 GOLD ?= cloud_assignment/data/validation.jsonl
@@ -37,20 +37,21 @@ setup:
 
 up:
 	@echo "Step 1: Creating k3d cluster..."
-	k3d cluster create --config cluster/k3d.yaml || true
+	k3d cluster create --config cluster/k3d.yaml
 	@echo "Step 2: Deploying storage, namespaces and secrets..."
 	kubectl apply -f k8s/namespace.yaml
 	kubectl apply -f k8s/secret.yaml
 	kubectl apply -f storage/seaweedfs.yaml
 	kubectl wait --for=condition=ready pod -l app=seaweedfs -n data --timeout=120s
-	kubectl exec -n data deploy/seaweedfs -- wget -q --method=PUT http://127.0.0.1:8333/datasets -O - || true
-	kubectl exec -n data deploy/seaweedfs -- wget -q --method=PUT http://127.0.0.1:8333/models -O - || true
+	kubectl exec -n data deploy/seaweedfs -- wget -q --method=PUT http://127.0.0.1:8333/datasets -O -
+	kubectl exec -n data deploy/seaweedfs -- wget -q --method=PUT http://127.0.0.1:8333/models -O -
 	@echo "Step 3: Building and deploying application..."
 	docker build -t $(IMAGE_NAME) -f Dockerfile .
-	k3d image import $(IMAGE_NAME) -c $(K3D_CLUSTER_NAME) || true
+	k3d image import $(IMAGE_NAME) -c $(K3D_CLUSTER_NAME)
 	kubectl apply -f k8s/deployment.yaml
 	kubectl apply -f k8s/service.yaml
 	kubectl apply -f k8s/ingress.yaml
+	kubectl apply -f k8s/networkpolicy.yaml
 	kubectl apply -f k8s/hpa.yaml
 	kubectl rollout status deployment/command-parser -n app --timeout=180s
 	@echo "Deployment complete. Application is available at http://localhost:8080"
@@ -58,6 +59,7 @@ up:
 down:
 	@echo "Tearing down Kubernetes resources and deleting cluster..."
 	-kubectl delete -f k8s/hpa.yaml --ignore-not-found=true
+	-kubectl delete -f k8s/networkpolicy.yaml --ignore-not-found=true
 	-kubectl delete -f k8s/ingress.yaml --ignore-not-found=true
 	-kubectl delete -f k8s/service.yaml --ignore-not-found=true
 	-kubectl delete -f k8s/deployment.yaml --ignore-not-found=true
@@ -69,7 +71,7 @@ down:
 
 lint:
 	@echo "Running Flake8 linter..."
-	$(FLAKE8) --max-line-length=120 --ignore=E402,E501,W503 worker service tests training
+	$(FLAKE8) --max-line-length=120 --ignore=E402,E501,W503 worker service tests training evaluation
 
 test:
 	@echo "Running test suite..."
@@ -81,7 +83,7 @@ train:
 
 evaluate:
 	@echo "Running evaluation suite across teacher, untrained and trained models..."
-	$(PYTHON) cloud_assignment/tools/score.py results/student_v1_predictions.jsonl cloud_assignment/data/validation.jsonl --min-validity 95
+	$(PYTHON) evaluation/evaluate.py --min-validity 95
 
 nacl-check:
 	$(PYTHON) cloud_assignment/tools/nacl_sim.py network/nacl.json cloud_assignment/network/packets_sample.jsonl --check

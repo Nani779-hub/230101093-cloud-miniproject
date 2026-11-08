@@ -48,7 +48,7 @@ spec:
             - name: S3_ENDPOINT
               value: "http://seaweedfs.data.svc.cluster.local:8333"
             - name: MAX_NEW_TOKENS
-              value: "150"
+              value: "50"
             - name: BUCKET
               value: "models"
             - name: AWS_ACCESS_KEY_ID
@@ -68,20 +68,24 @@ spec:
             limits:
               cpu: "1"
               memory: "1Gi"
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sleep", "3"]
           livenessProbe:
             httpGet:
               path: /healthz
               port: 8000
             initialDelaySeconds: 15
-            periodSeconds: 15
+            periodSeconds: 10
             timeoutSeconds: 5
-            failureThreshold: 10
+            failureThreshold: 5
           readinessProbe:
             httpGet:
               path: /readyz
               port: 8000
-            initialDelaySeconds: 5
-            periodSeconds: 5
-            timeoutSeconds: 5
-            failureThreshold: 10
+            initialDelaySeconds: 10
+            periodSeconds: 2
+            timeoutSeconds: 2
+            failureThreshold: 15
 

@@ -6,17 +6,17 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app: cloud-parser-service
+      app: command-parser
   policyTypes:
     - Ingress
     - Egress
   ingress:
-    # Allow incoming HTTP traffic from Ingress controller
+    # Allow incoming HTTP traffic from Ingress controller / services on port 8000
     - from:
         - namespaceSelector: {}
       ports:
         - protocol: TCP
-          port: 8080
+          port: 8000
   egress:
     # Allow DNS queries
     - ports:

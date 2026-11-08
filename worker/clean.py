@@ -21,8 +21,8 @@ import os
 import boto3
 
 S3_ENDPOINT = os.environ.get("S3_ENDPOINT", "http://localhost:8333")
-AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID", "admin")
-AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY", "admin")
+AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
 BUCKET = os.environ.get("BUCKET", "datasets")
 
 VALID_INTENTS = {
