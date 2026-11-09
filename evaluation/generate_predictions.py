@@ -96,6 +96,23 @@ def generate_predictions(model_dir: str, input_file: str, output_file: str, max_
             else:
                 prediction = decoded.strip()
 
+            # Extract balanced-brace JSON object (matching service/app.py)
+            try:
+                start = prediction.index("{")
+                depth = 0
+                end = start
+                for j in range(start, len(prediction)):
+                    if prediction[j] == "{":
+                        depth += 1
+                    elif prediction[j] == "}":
+                        depth -= 1
+                        if depth == 0:
+                            end = j + 1
+                            break
+                prediction = prediction[start:end]
+            except (ValueError, IndexError):
+                pass
+
             out_f.write(json.dumps({"id": item["id"], "prediction": prediction}) + "\n")
 
     print(f"Saved {len(items)} predictions to {output_file}")
@@ -104,7 +121,9 @@ def generate_predictions(model_dir: str, input_file: str, output_file: str, max_
 def main():
     parser = argparse.ArgumentParser(description="Generate predictions from Pythia-70M model")
     parser.add_argument("--model", default="models/v1", help="Path to model directory")
-    parser.add_argument("--input", default="cloud_assignment/data/validation.jsonl", help="Path to input validation.jsonl")
+    parser.add_argument(
+        "--input", default="cloud_assignment/data/validation.jsonl", help="Path to input validation.jsonl"
+    )
     parser.add_argument("--output", default="results/student_v1_predictions.jsonl", help="Output predictions path")
     parser.add_argument("--verify-checksum", default="models/v1/model.sha256", help="Path to model.sha256")
     parser.add_argument("--max-new-tokens", type=int, default=50, help="Maximum new tokens per inference")
