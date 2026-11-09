@@ -145,9 +145,22 @@ jobs:
           fetch-depth: 0
 
       - name: Install Gitleaks
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           GITLEAKS_VERSION="8.24.0"
-          curl -sSL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" | sudo tar -xz -C /usr/local/bin gitleaks
+          ASSET_URL="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "Downloading Gitleaks v${GITLEAKS_VERSION}..."
+          if ! curl -fL -H "User-Agent: Mozilla/5.0" "$ASSET_URL" -o gitleaks.tar.gz || ! tar -tzf gitleaks.tar.gz > /dev/null 2>&1; then
+            echo "curl download failed or invalid archive, falling back to gh release download..."
+            gh release download "v${GITLEAKS_VERSION}" --repo gitleaks/gitleaks --pattern "*linux_x64.tar.gz" --output gitleaks.tar.gz
+          fi
+          echo "Validating archive integrity..."
+          tar -tzf gitleaks.tar.gz > /dev/null
+          sudo tar -xzf gitleaks.tar.gz -C /usr/local/bin gitleaks
+          sudo chmod +x /usr/local/bin/gitleaks
+          rm -f gitleaks.tar.gz
+          gitleaks version
 
       - name: Run Gitleaks Secret Scanner
         run: |
